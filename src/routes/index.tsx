@@ -1,5 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import dervish from "@/assets/backdrops/dervish.jpg";
+import reed from "@/assets/backdrops/reed.jpg";
+import arches from "@/assets/backdrops/arches.jpg";
+import calligraphy from "@/assets/backdrops/calligraphy.jpg";
+import dunes from "@/assets/backdrops/dunes.jpg";
+import tea from "@/assets/backdrops/tea.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -9,10 +15,6 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "Rumi Is Your Roomie" },
       { property: "og:description", content: "Share a thought, a wound, a wonder — and receive a poem in the voice of Rumi." },
       { name: "twitter:card", content: "summary_large_image" },
-      {
-        rel: "preconnect",
-        href: "https://fonts.googleapis.com",
-      },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -29,12 +31,26 @@ export const Route = createFileRoute("/")({
 const WEBHOOK_URL =
   "https://shoot-sept-distribution-championship.trycloudflare.com/webhook-test/307bd27c-c693-4c85-98e2-241a1909a633";
 
+const BACKDROPS = [dervish, reed, arches, calligraphy, dunes, tea];
+
+// Pacing — tuned for "handwritten letter" feel
+const CHAR_MS = 42;          // per character
+const LINE_GAP_MS = 480;     // pause between lines
+const BLANK_LINE_MS = 900;   // longer pause on stanza breaks
+
 type Entry = {
   id: string;
   topic: string;
   poem?: string;
   error?: string;
   loading: boolean;
+  // typewriter state
+  lines: string[];           // full lines
+  revealedFull: number;      // index of next line to type (lines fully shown < this)
+  currentText: string;       // partial text of the line being typed
+  typing: boolean;
+  glow: boolean;
+  backdrop: string;
 };
 
 function extractPoem(data: unknown): string {
@@ -45,7 +61,6 @@ function extractPoem(data: unknown): string {
     for (const key of ["poem", "output", "text", "response", "message", "result", "content"]) {
       if (typeof obj[key] === "string") return obj[key] as string;
     }
-    // nested
     for (const v of Object.values(obj)) {
       if (typeof v === "string" && v.length > 20) return v;
     }
@@ -53,22 +68,154 @@ function extractPoem(data: unknown): string {
   return "";
 }
 
+function hashIndex(s: string, mod: number): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return Math.abs(h) % mod;
+}
+
+function prefersReducedMotion(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+}
+
 function Index() {
   const [topic, setTopic] = useState("");
   const [entries, setEntries] = useState<Entry[]>([]);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const entryRefs = useRef<Record<string, HTMLElement | null>>({});
+  const timeoutsRef = useRef<number[]>([]);
+
+  // Composer disabled while any entry is loading OR typing
+  const busy = entries.some((e) => e.loading || e.typing);
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [entries]);
+    return () => {
+      timeoutsRef.current.forEach((t) => clearTimeout(t));
+    };
+  }, []);
+
+  const scrollToEntry = useCallback((id: string, block: ScrollLogicalPosition = "start") => {
+    requestAnimationFrame(() => {
+      const el = entryRefs.current[id];
+      if (el) el.scrollIntoView({ behavior: "smooth", block });
+    });
+  }, []);
+
+  const startTypewriter = useCallback((id: string, fullPoem: string) => {
+    const lines = fullPoem.split("\n");
+    const reduced = prefersReducedMotion();
+
+    setEntries((prev) =>
+      prev.map((e) =>
+        e.id === id
+          ? {
+              ...e,
+              poem: fullPoem,
+              lines,
+              loading: false,
+              typing: !reduced,
+              revealedFull: reduced ? lines.length : 0,
+              currentText: "",
+            }
+          : e,
+      ),
+    );
+
+    if (reduced) {
+      // mark complete & glow
+      const t = window.setTimeout(() => {
+        setEntries((prev) => prev.map((e) => (e.id === id ? { ...e, glow: true } : e)));
+        scrollToEntry(id, "center");
+        const t2 = window.setTimeout(() => {
+          setEntries((prev) => prev.map((e) => (e.id === id ? { ...e, glow: false } : e)));
+        }, 3200);
+        timeoutsRef.current.push(t2);
+      }, 50);
+      timeoutsRef.current.push(t);
+      return;
+    }
+
+    let lineIdx = 0;
+    let charIdx = 0;
+
+    const step = () => {
+      if (lineIdx >= lines.length) {
+        // done
+        setEntries((prev) =>
+          prev.map((e) =>
+            e.id === id ? { ...e, typing: false, currentText: "", revealedFull: lines.length, glow: true } : e,
+          ),
+        );
+        scrollToEntry(id, "center");
+        const tEnd = window.setTimeout(() => {
+          setEntries((prev) => prev.map((e) => (e.id === id ? { ...e, glow: false } : e)));
+        }, 3200);
+        timeoutsRef.current.push(tEnd);
+        return;
+      }
+
+      const line = lines[lineIdx];
+
+      if (line.length === 0) {
+        // blank line — just pause then advance
+        setEntries((prev) =>
+          prev.map((e) => (e.id === id ? { ...e, revealedFull: lineIdx + 1, currentText: "" } : e)),
+        );
+        lineIdx += 1;
+        charIdx = 0;
+        const t = window.setTimeout(step, BLANK_LINE_MS);
+        timeoutsRef.current.push(t);
+        return;
+      }
+
+      if (charIdx <= line.length) {
+        const partial = line.slice(0, charIdx);
+        setEntries((prev) =>
+          prev.map((e) => (e.id === id ? { ...e, currentText: partial, revealedFull: lineIdx } : e)),
+        );
+        charIdx += 1;
+        const t = window.setTimeout(step, CHAR_MS);
+        timeoutsRef.current.push(t);
+      } else {
+        // line complete — commit and pause
+        setEntries((prev) =>
+          prev.map((e) =>
+            e.id === id ? { ...e, revealedFull: lineIdx + 1, currentText: "" } : e,
+          ),
+        );
+        lineIdx += 1;
+        charIdx = 0;
+        const t = window.setTimeout(step, LINE_GAP_MS);
+        timeoutsRef.current.push(t);
+      }
+    };
+
+    const tStart = window.setTimeout(step, 350);
+    timeoutsRef.current.push(tStart);
+  }, [scrollToEntry]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const t = topic.trim();
-    if (!t || t.length > 500) return;
+    if (!t || t.length > 500 || busy) return;
     const id = crypto.randomUUID();
-    setEntries((prev) => [...prev, { id, topic: t, loading: true }]);
+    const backdrop = BACKDROPS[hashIndex(t, BACKDROPS.length)];
+    setEntries((prev) => [
+      ...prev,
+      {
+        id,
+        topic: t,
+        loading: true,
+        lines: [],
+        revealedFull: 0,
+        currentText: "",
+        typing: false,
+        glow: false,
+        backdrop,
+      },
+    ]);
     setTopic("");
+    scrollToEntry(id, "start");
 
     try {
       const res = await fetch(WEBHOOK_URL, {
@@ -86,9 +233,7 @@ function Index() {
         poem = await res.text();
       }
       if (!poem) poem = "Silence answered — try again with another whisper.";
-      setEntries((prev) =>
-        prev.map((en) => (en.id === id ? { ...en, poem, loading: false } : en)),
-      );
+      startTypewriter(id, poem.trim());
     } catch (err) {
       setEntries((prev) =>
         prev.map((en) =>
@@ -101,10 +246,10 @@ function Index() {
   };
 
   const hasConversation = entries.length > 0;
+  const lastIndex = entries.length - 1;
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Header */}
       <header className="pt-10 pb-6 px-6 text-center">
         <p className="text-xs tracking-[0.4em] uppercase text-gold mb-3">A Whispered Reply</p>
         <h1 className="font-display text-5xl md:text-6xl font-medium text-ink">
@@ -116,12 +261,8 @@ function Index() {
         <div className="ornament inline-block mt-5 text-sm text-gold/70" />
       </header>
 
-      {/* Scroll area */}
-      <main
-        ref={scrollRef}
-        className="flex-1 overflow-y-auto px-6 py-8"
-      >
-        <div className="max-w-2xl mx-auto space-y-12">
+      <main className="flex-1 px-6 py-8">
+        <div className="max-w-2xl mx-auto space-y-10">
           {!hasConversation && (
             <div className="text-center mt-10 opacity-80">
               <p className="font-display italic text-xl text-muted-foreground">
@@ -133,85 +274,161 @@ function Index() {
             </div>
           )}
 
-          {entries.map((e) => (
-            <article key={e.id} className="space-y-6">
-              {/* User topic */}
-              <div className="flex justify-end">
-                <div className="max-w-md rounded-2xl rounded-br-sm bg-primary text-primary-foreground px-5 py-3 shadow-sm">
-                  <p className="font-body text-base leading-relaxed">{e.topic}</p>
-                </div>
-              </div>
+          {entries.map((e, i) => {
+            const isLatest = i === lastIndex;
+            const isHistory = !isLatest;
 
-              {/* Poem */}
-              <div className="relative">
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-gold text-2xl select-none">
-                  ❦
-                </div>
-                <div className="border-t border-b border-gold/40 py-8 px-2 md:px-6 text-center">
-                  {e.loading && (
-                    <div className="flex flex-col items-center gap-3 py-6">
-                      <div className="flex gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-gold animate-pulse" />
-                        <span className="w-1.5 h-1.5 rounded-full bg-gold animate-pulse [animation-delay:200ms]" />
-                        <span className="w-1.5 h-1.5 rounded-full bg-gold animate-pulse [animation-delay:400ms]" />
-                      </div>
-                      <p className="font-display italic text-muted-foreground text-sm">
-                        Rumi is listening to the reed…
-                      </p>
-                    </div>
-                  )}
-                  {e.error && (
-                    <p className="text-destructive font-body italic">
-                      The reed fell silent: {e.error}
+            if (isHistory) {
+              return (
+                <details
+                  key={e.id}
+                  className="history-card group rounded-xl border border-gold/30 bg-card/60 backdrop-blur-sm px-5 py-3 hover:border-gold/60"
+                >
+                  <summary className="flex items-center justify-between cursor-pointer list-none select-none">
+                    <span className="font-display italic text-lg text-ink truncate">
+                      <span className="text-gold mr-2">✦</span>
+                      {e.topic}
+                    </span>
+                    <svg
+                      className="chev w-4 h-4 text-gold shrink-0 ml-3"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M6 9l6 6 6-6" />
+                    </svg>
+                  </summary>
+                  <div className="mt-5 border-t border-gold/30 pt-5 font-display text-ink text-lg md:text-xl leading-[1.9] whitespace-pre-wrap text-center">
+                    {e.poem || (e.error ? <span className="text-destructive italic">{e.error}</span> : null)}
+                  </div>
+                  {e.poem && (
+                    <p className="text-center mt-3 text-[10px] tracking-[0.3em] uppercase text-gold/70">
+                      — Rumi, for you
                     </p>
                   )}
-                  {e.poem && (
-                    <div className="font-display text-ink text-xl md:text-2xl leading-[1.9] whitespace-pre-wrap">
-                      {e.poem.split("\n").map((line, i) => (
-                        <div
-                          key={i}
-                          className="poem-line"
-                          style={{ animationDelay: `${i * 120}ms` }}
-                        >
-                          {line || "\u00A0"}
-                        </div>
-                      ))}
+                </details>
+              );
+            }
+
+            // Latest entry — full immersive view
+            return (
+              <article
+                key={e.id}
+                ref={(el) => {
+                  entryRefs.current[e.id] = el;
+                }}
+                className="entry-mount space-y-6 scroll-mt-24"
+              >
+                <div className="flex justify-end">
+                  <div className="max-w-md rounded-2xl rounded-br-sm bg-primary text-primary-foreground px-5 py-3 shadow-sm">
+                    <p className="font-body text-base leading-relaxed">{e.topic}</p>
+                  </div>
+                </div>
+
+                <div className={`relative overflow-hidden rounded-2xl ${e.glow ? "poem-glow" : ""}`}>
+                  {/* Backdrop */}
+                  <div
+                    className="poem-backdrop"
+                    style={{ backgroundImage: `url(${e.backdrop})` }}
+                    aria-hidden="true"
+                  />
+                  <div className="poem-veil" aria-hidden="true" />
+
+                  <div className="relative">
+                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 text-gold text-2xl select-none">
+                      ❦
                     </div>
+                    <div className="border-t border-b border-gold/40 py-10 px-2 md:px-6 text-center min-h-[220px] flex items-center justify-center">
+                      {e.loading && (
+                        <div
+                          className="flex flex-col items-center gap-4 py-6"
+                          role="status"
+                          aria-live="polite"
+                        >
+                          <p className="breathe font-display italic text-xl text-ink">
+                            <span className="text-gold mr-2">✦</span>
+                            Rumi is listening...
+                          </p>
+                          <p className="breathe-delayed font-display italic text-base text-muted-foreground">
+                            The reed flute gathers breath...
+                          </p>
+                        </div>
+                      )}
+
+                      {e.error && (
+                        <p className="text-destructive font-body italic">
+                          The reed fell silent: {e.error}
+                        </p>
+                      )}
+
+                      {!e.loading && !e.error && e.lines.length > 0 && (
+                        <div
+                          className="font-display text-ink text-xl md:text-2xl leading-[1.95] whitespace-pre-wrap w-full"
+                          aria-live="polite"
+                        >
+                          {e.lines.map((line, idx) => {
+                            if (idx < e.revealedFull) {
+                              return (
+                                <div
+                                  key={idx}
+                                  className="poem-line"
+                                  style={{ animationDelay: "0ms" }}
+                                >
+                                  {line || "\u00A0"}
+                                </div>
+                              );
+                            }
+                            if (idx === e.revealedFull && e.typing) {
+                              return (
+                                <div key={idx} className="poem-line" style={{ animationDelay: "0ms" }}>
+                                  {e.currentText}
+                                  <span className="caret">▍</span>
+                                </div>
+                              );
+                            }
+                            return null;
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  {!e.loading && !e.typing && e.poem && (
+                    <p className="relative text-center mt-3 mb-2 text-xs tracking-[0.3em] uppercase text-gold/80">
+                      — Rumi, for you
+                    </p>
                   )}
                 </div>
-                {e.poem && (
-                  <p className="text-center mt-3 text-xs tracking-[0.3em] uppercase text-gold/80">
-                    — Rumi, for you
-                  </p>
-                )}
-              </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </div>
       </main>
 
-      {/* Composer */}
       <div className="sticky bottom-0 bg-gradient-to-t from-background via-background to-transparent pt-6 pb-6 px-6">
         <form onSubmit={submit} className="max-w-2xl mx-auto">
           <div className="flex items-end gap-2 rounded-2xl border border-gold/50 bg-card/80 backdrop-blur px-4 py-3 shadow-lg focus-within:border-gold transition-colors">
             <textarea
               value={topic}
-              onChange={(e) => setTopic(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  submit(e as unknown as React.FormEvent);
+              onChange={(ev) => setTopic(ev.target.value)}
+              onKeyDown={(ev) => {
+                if (ev.key === "Enter" && !ev.shiftKey) {
+                  ev.preventDefault();
+                  submit(ev as unknown as React.FormEvent);
                 }
               }}
               rows={1}
               maxLength={500}
-              placeholder="Whisper a topic, a feeling, a question…"
-              className="flex-1 resize-none bg-transparent outline-none font-body text-base placeholder:text-muted-foreground/60 max-h-32"
+              disabled={busy}
+              placeholder={busy ? "Rumi is composing your verse…" : "Whisper a topic, a feeling, a question…"}
+              className="flex-1 resize-none bg-transparent outline-none font-body text-base placeholder:text-muted-foreground/60 max-h-32 disabled:opacity-60 disabled:cursor-not-allowed"
               aria-label="Your topic for Rumi"
             />
             <button
               type="submit"
-              disabled={!topic.trim() || entries.some((e) => e.loading)}
+              disabled={!topic.trim() || busy}
               className="shrink-0 rounded-full bg-primary text-primary-foreground w-10 h-10 flex items-center justify-center hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:scale-105"
               aria-label="Send to Rumi"
             >
