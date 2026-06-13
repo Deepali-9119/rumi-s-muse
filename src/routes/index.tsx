@@ -1,11 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useRef, useEffect, useCallback } from "react";
-import dervish from "@/assets/backdrops/dervish.jpg";
-import reed from "@/assets/backdrops/reed.jpg";
-import arches from "@/assets/backdrops/arches.jpg";
-import calligraphy from "@/assets/backdrops/calligraphy.jpg";
-import dunes from "@/assets/backdrops/dunes.jpg";
-import tea from "@/assets/backdrops/tea.jpg";
+import moonAsset from "@/assets/moon.jpg.asset.json";
+import featherAsset from "@/assets/feather.jpg.asset.json";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -31,12 +27,12 @@ export const Route = createFileRoute("/")({
 const WEBHOOK_URL =
   "https://shoot-sept-distribution-championship.trycloudflare.com/webhook-test/307bd27c-c693-4c85-98e2-241a1909a633";
 
-const BACKDROPS = [dervish, reed, arches, calligraphy, dunes, tea];
+const MOON_URL = moonAsset.url;
+const FEATHER_URL = featherAsset.url;
 
-// Pacing — tuned for "handwritten letter" feel
-const CHAR_MS = 42;          // per character
-const LINE_GAP_MS = 480;     // pause between lines
-const BLANK_LINE_MS = 900;   // longer pause on stanza breaks
+const CHAR_MS = 42;
+const LINE_GAP_MS = 480;
+const BLANK_LINE_MS = 900;
 
 type Entry = {
   id: string;
@@ -44,13 +40,11 @@ type Entry = {
   poem?: string;
   error?: string;
   loading: boolean;
-  // typewriter state
-  lines: string[];           // full lines
-  revealedFull: number;      // index of next line to type (lines fully shown < this)
-  currentText: string;       // partial text of the line being typed
+  lines: string[];
+  revealedFull: number;
+  currentText: string;
   typing: boolean;
   glow: boolean;
-  backdrop: string;
 };
 
 function extractPoem(data: unknown): string {
@@ -68,12 +62,6 @@ function extractPoem(data: unknown): string {
   return "";
 }
 
-function hashIndex(s: string, mod: number): number {
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
-  return Math.abs(h) % mod;
-}
-
 function prefersReducedMotion(): boolean {
   if (typeof window === "undefined") return false;
   return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
@@ -85,7 +73,6 @@ function Index() {
   const entryRefs = useRef<Record<string, HTMLElement | null>>({});
   const timeoutsRef = useRef<number[]>([]);
 
-  // Composer disabled while any entry is loading OR typing
   const busy = entries.some((e) => e.loading || e.typing);
 
   useEffect(() => {
@@ -122,7 +109,6 @@ function Index() {
     );
 
     if (reduced) {
-      // mark complete & glow
       const t = window.setTimeout(() => {
         setEntries((prev) => prev.map((e) => (e.id === id ? { ...e, glow: true } : e)));
         scrollToEntry(id, "center");
@@ -140,7 +126,6 @@ function Index() {
 
     const step = () => {
       if (lineIdx >= lines.length) {
-        // done
         setEntries((prev) =>
           prev.map((e) =>
             e.id === id ? { ...e, typing: false, currentText: "", revealedFull: lines.length, glow: true } : e,
@@ -157,7 +142,6 @@ function Index() {
       const line = lines[lineIdx];
 
       if (line.length === 0) {
-        // blank line — just pause then advance
         setEntries((prev) =>
           prev.map((e) => (e.id === id ? { ...e, revealedFull: lineIdx + 1, currentText: "" } : e)),
         );
@@ -177,7 +161,6 @@ function Index() {
         const t = window.setTimeout(step, CHAR_MS);
         timeoutsRef.current.push(t);
       } else {
-        // line complete — commit and pause
         setEntries((prev) =>
           prev.map((e) =>
             e.id === id ? { ...e, revealedFull: lineIdx + 1, currentText: "" } : e,
@@ -199,7 +182,6 @@ function Index() {
     const t = topic.trim();
     if (!t || t.length > 500 || busy) return;
     const id = crypto.randomUUID();
-    const backdrop = BACKDROPS[hashIndex(t, BACKDROPS.length)];
     setEntries((prev) => [
       ...prev,
       {
@@ -211,7 +193,6 @@ function Index() {
         currentText: "",
         typing: false,
         glow: false,
-        backdrop,
       },
     ]);
     setTopic("");
@@ -276,9 +257,8 @@ function Index() {
 
           {entries.map((e, i) => {
             const isLatest = i === lastIndex;
-            const isHistory = !isLatest;
 
-            if (isHistory) {
+            if (!isLatest) {
               return (
                 <details
                   key={e.id}
@@ -313,7 +293,8 @@ function Index() {
               );
             }
 
-            // Latest entry — full immersive view
+            const showPoem = !e.loading && !e.error && e.lines.length > 0;
+
             return (
               <article
                 key={e.id}
@@ -328,32 +309,42 @@ function Index() {
                   </div>
                 </div>
 
-                <div className={`relative overflow-hidden rounded-2xl ${e.glow ? "poem-glow" : ""}`}>
-                  {/* Backdrop */}
-                  <div
-                    className="poem-backdrop"
-                    style={{ backgroundImage: `url(${e.backdrop})` }}
-                    aria-hidden="true"
-                  />
-                  <div className="poem-veil" aria-hidden="true" />
+                <div className={`canvas-card ${e.glow ? "poem-glow" : ""}`}>
+                  {showPoem && (
+                    <img
+                      key={`moon-${e.id}`}
+                      src={MOON_URL}
+                      alt=""
+                      aria-hidden="true"
+                      className="canvas-moon"
+                    />
+                  )}
+                  <div className="canvas-veil" aria-hidden="true" />
 
-                  <div className="relative">
-                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 text-gold text-2xl select-none">
+                  <div className="relative px-6 md:px-10 py-10">
+                    <div className="absolute top-3 left-1/2 -translate-x-1/2 text-gold text-2xl select-none">
                       ❦
                     </div>
-                    <div className="border-t border-b border-gold/40 py-10 px-2 md:px-6 text-center min-h-[220px] flex items-center justify-center">
+
+                    <div className="flex justify-start mb-2">
+                      <img
+                        src={FEATHER_URL}
+                        alt=""
+                        aria-hidden="true"
+                        className={`feather-img ${e.loading ? "feather-write" : "feather-float"}`}
+                      />
+                    </div>
+
+                    <div className="border-t border-b border-gold/40 py-8 text-center min-h-[220px] flex items-center justify-center">
                       {e.loading && (
                         <div
-                          className="flex flex-col items-center gap-4 py-6"
+                          className="flex flex-col items-center gap-3 py-6"
                           role="status"
                           aria-live="polite"
                         >
                           <p className="breathe font-display italic text-xl text-ink">
                             <span className="text-gold mr-2">✦</span>
-                            Rumi is listening...
-                          </p>
-                          <p className="breathe-delayed font-display italic text-base text-muted-foreground">
-                            The reed flute gathers breath...
+                            Rumi is writing...
                           </p>
                         </div>
                       )}
@@ -364,7 +355,7 @@ function Index() {
                         </p>
                       )}
 
-                      {!e.loading && !e.error && e.lines.length > 0 && (
+                      {showPoem && (
                         <div
                           className="font-display text-ink text-xl md:text-2xl leading-[1.95] whitespace-pre-wrap w-full"
                           aria-live="polite"
@@ -372,18 +363,14 @@ function Index() {
                           {e.lines.map((line, idx) => {
                             if (idx < e.revealedFull) {
                               return (
-                                <div
-                                  key={idx}
-                                  className="poem-line"
-                                  style={{ animationDelay: "0ms" }}
-                                >
+                                <div key={idx} className="poem-line">
                                   {line || "\u00A0"}
                                 </div>
                               );
                             }
                             if (idx === e.revealedFull && e.typing) {
                               return (
-                                <div key={idx} className="poem-line" style={{ animationDelay: "0ms" }}>
+                                <div key={idx} className="poem-line">
                                   {e.currentText}
                                   <span className="caret">▍</span>
                                 </div>
@@ -394,12 +381,12 @@ function Index() {
                         </div>
                       )}
                     </div>
+                    {!e.loading && !e.typing && e.poem && (
+                      <p className="text-center mt-4 text-xs tracking-[0.3em] uppercase text-gold/80">
+                        — Rumi, for you
+                      </p>
+                    )}
                   </div>
-                  {!e.loading && !e.typing && e.poem && (
-                    <p className="relative text-center mt-3 mb-2 text-xs tracking-[0.3em] uppercase text-gold/80">
-                      — Rumi, for you
-                    </p>
-                  )}
                 </div>
               </article>
             );
