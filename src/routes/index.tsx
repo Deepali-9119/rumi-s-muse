@@ -425,9 +425,12 @@ function Index() {
         </div>
       </main>
 
-      <div className="sticky bottom-0 bg-gradient-to-t from-background via-background to-transparent pt-6 pb-6 px-6">
+      <div className="sticky bottom-0 pt-6 pb-6 px-6 z-10 bg-gradient-to-t from-[oklch(0.1_0.04_262)] via-[oklch(0.14_0.05_262)]/90 to-transparent">
         <form onSubmit={submit} className="max-w-2xl mx-auto">
-          <div className="flex items-end gap-2 rounded-2xl border border-gold/50 bg-card/80 backdrop-blur px-4 py-3 shadow-lg focus-within:border-gold transition-colors">
+          <div
+            className="flex items-end gap-2 rounded-2xl border border-gold/50 backdrop-blur-md px-4 py-3 shadow-2xl shadow-black/40 focus-within:border-gold transition-colors"
+            style={{ background: "color-mix(in oklab, var(--parchment) 92%, transparent)" }}
+          >
             <textarea
               value={topic}
               onChange={(ev) => setTopic(ev.target.value)}
@@ -441,7 +444,7 @@ function Index() {
               maxLength={500}
               disabled={busy}
               placeholder={busy ? "Rumi is composing your verse…" : "Whisper a topic, a feeling, a question…"}
-              className="flex-1 resize-none bg-transparent outline-none font-body text-base placeholder:text-muted-foreground/60 max-h-32 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="flex-1 resize-none bg-transparent outline-none font-body text-base text-ink placeholder:text-ink/40 max-h-32 disabled:opacity-60 disabled:cursor-not-allowed"
               aria-label="Your topic for Rumi"
             />
             <button
@@ -455,7 +458,7 @@ function Index() {
               </svg>
             </button>
           </div>
-          <p className="text-center text-xs text-muted-foreground/70 mt-2 italic font-display">
+          <p className="text-center text-xs mt-2 italic font-display" style={{ color: "var(--sky-muted)" }}>
             Press Enter to send · Shift+Enter for a new line
           </p>
         </form>
