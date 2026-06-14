@@ -292,7 +292,8 @@ function Index() {
               return (
                 <details
                   key={e.id}
-                  className="history-card group rounded-xl border border-gold/30 bg-card/60 backdrop-blur-sm px-5 py-3 hover:border-gold/60"
+                  className="history-card group rounded-xl border border-gold/40 px-5 py-3 hover:border-gold/70 backdrop-blur-md"
+                  style={{ background: "color-mix(in oklab, var(--parchment) 88%, transparent)" }}
                 >
                   <summary className="flex items-center justify-between cursor-pointer list-none select-none">
                     <span className="font-display italic text-lg text-ink truncate">
