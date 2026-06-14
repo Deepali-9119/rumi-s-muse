@@ -322,6 +322,23 @@
     50%      { transform: translateY(-3px) rotate(1deg); }
   }
 
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.85; }
+    50%      { opacity: 0.55; }
+  }
+
+  @keyframes auraBreathe {
+    0%, 100% { opacity: 0.85; transform: scale(1); }
+    50%      { opacity: 1;    transform: scale(1.04); }
+  }
+
+  @keyframes driftUp {
+    0%   { transform: translate3d(0, 0, 0); opacity: 0; }
+    10%  { opacity: 0.9; }
+    90%  { opacity: 0.7; }
+    100% { transform: translate3d(var(--sway, 20px), -110vh, 0); opacity: 0; }
+  }
+
   .ornament::before,
   .ornament::after {
     content: "❦";
@@ -331,9 +348,11 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .breathe, .breathe-delayed, .caret, .canvas-moon, .feather-float, .feather-write {
+    .breathe, .breathe-delayed, .caret, .canvas-moon, .feather-float, .feather-write,
+    .sky-stars, .sky-moonglow, .stardust > span {
       animation: none !important;
     }
     .canvas-moon { opacity: 0.12; }
+    .stardust > span { opacity: 0.4; }
   }
 }
