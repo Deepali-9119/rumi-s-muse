@@ -25,7 +25,7 @@ export const Route = createFileRoute("/")({
 });
 
 const WEBHOOK_URL =
-  "https://shoot-sept-distribution-championship.trycloudflare.com/webhook-test/307bd27c-c693-4c85-98e2-241a1909a633";
+  "https://treat-blackberry-encryption-eye.trycloudflare.com/webhook/307bd27c-c693-4c85-98e2-241a1909a633";
 
 const MOON_URL = moonAsset.url;
 const FEATHER_URL = featherAsset.url;
