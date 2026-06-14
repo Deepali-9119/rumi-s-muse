@@ -229,24 +229,53 @@ function Index() {
   const hasConversation = entries.length > 0;
   const lastIndex = entries.length - 1;
 
+  const dust = Array.from({ length: 14 }, (_, i) => {
+    const x = (i * 73) % 100;
+    const size = 1 + ((i * 7) % 4) * 0.6;
+    const duration = 22 + ((i * 11) % 20);
+    const delay = (i * 2.3) % 18;
+    const sway = ((i % 2 === 0 ? 1 : -1) * (15 + (i * 5) % 30));
+    return { x, size, duration, delay, sway, key: i };
+  });
+
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="pt-10 pb-6 px-6 text-center">
+    <div className="min-h-screen flex flex-col relative">
+      <div className="sky-layer sky-stars" aria-hidden="true" />
+      <div className="sky-layer sky-moonglow" aria-hidden="true" />
+      <div className="sky-layer sky-vignette" aria-hidden="true" />
+      <div className="stardust" aria-hidden="true">
+        {dust.map((d) => (
+          <span
+            key={d.key}
+            style={{
+              ['--x' as string]: `${d.x}%`,
+              ['--size' as string]: `${d.size}px`,
+              ['--duration' as string]: `${d.duration}s`,
+              ['--delay' as string]: `${d.delay}s`,
+              ['--sway' as string]: `${d.sway}px`,
+            }}
+          />
+        ))}
+      </div>
+
+      <header className="pt-10 pb-6 px-6 text-center relative z-10">
         <p className="text-xs tracking-[0.4em] uppercase text-gold mb-3">A Whispered Reply</p>
-        <h1 className="font-display text-5xl md:text-6xl font-medium text-ink">
+        <h1 className="font-display text-5xl md:text-6xl font-medium" style={{ color: "var(--sky-foreground)" }}>
+          <span className="text-gold/70 mr-3 text-2xl align-middle">✦</span>
           Rumi <span className="italic text-gold">is your</span> Roomie
+          <span className="text-gold/70 ml-3 text-2xl align-middle">✦</span>
         </h1>
-        <p className="mt-4 text-muted-foreground italic font-display text-lg max-w-xl mx-auto">
+        <p className="mt-4 italic font-display text-lg max-w-xl mx-auto" style={{ color: "var(--sky-muted)" }}>
           Tell him a thought, a wound, a wonder — and he will answer in verse.
         </p>
         <div className="ornament inline-block mt-5 text-sm text-gold/70" />
       </header>
 
-      <main className="flex-1 px-6 py-8">
+      <main className="flex-1 px-6 py-8 relative z-10">
         <div className="max-w-2xl mx-auto space-y-10">
           {!hasConversation && (
-            <div className="text-center mt-10 opacity-80">
-              <p className="font-display italic text-xl text-muted-foreground">
+            <div className="text-center mt-10 opacity-90">
+              <p className="font-display italic text-xl" style={{ color: "var(--sky-muted)" }}>
                 "Out beyond ideas of wrongdoing and rightdoing,
                 <br />
                 there is a field. I'll meet you there."
@@ -254,6 +283,7 @@ function Index() {
               <p className="mt-3 text-xs tracking-widest uppercase text-gold">— Rumi</p>
             </div>
           )}
+
 
           {entries.map((e, i) => {
             const isLatest = i === lastIndex;
