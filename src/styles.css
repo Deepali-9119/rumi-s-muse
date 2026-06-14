@@ -39,49 +39,51 @@
 :root {
   --radius: 0.5rem;
   --parchment: oklch(0.96 0.025 80);
-  --background: oklch(0.955 0.028 78);
-  --foreground: oklch(0.28 0.05 40);
+  --background: oklch(0.16 0.05 265);
+  --foreground: oklch(0.92 0.04 85);
   --ink: oklch(0.25 0.06 38);
-  --gold: oklch(0.68 0.14 65);
+  --gold: oklch(0.72 0.14 72);
+  --sky-foreground: oklch(0.94 0.035 85);
+  --sky-muted: oklch(0.78 0.05 260);
   --card: oklch(0.97 0.022 82);
   --card-foreground: oklch(0.28 0.05 40);
-  --popover: oklch(0.97 0.022 82);
-  --popover-foreground: oklch(0.28 0.05 40);
-  --primary: oklch(0.42 0.11 45);
+  --popover: oklch(0.22 0.05 265);
+  --popover-foreground: oklch(0.92 0.04 85);
+  --primary: oklch(0.55 0.13 60);
   --primary-foreground: oklch(0.97 0.025 80);
-  --secondary: oklch(0.9 0.04 75);
-  --secondary-foreground: oklch(0.3 0.06 40);
-  --muted: oklch(0.92 0.03 78);
-  --muted-foreground: oklch(0.48 0.05 50);
-  --accent: oklch(0.68 0.14 65);
+  --secondary: oklch(0.28 0.06 270);
+  --secondary-foreground: oklch(0.92 0.04 85);
+  --muted: oklch(0.25 0.05 268);
+  --muted-foreground: oklch(0.78 0.05 260);
+  --accent: oklch(0.72 0.14 72);
   --accent-foreground: oklch(0.2 0.04 40);
-  --destructive: oklch(0.55 0.2 27);
+  --destructive: oklch(0.6 0.2 27);
   --destructive-foreground: oklch(0.98 0.01 80);
-  --border: oklch(0.82 0.05 70);
-  --input: oklch(0.88 0.04 75);
-  --ring: oklch(0.68 0.14 65);
+  --border: oklch(0.42 0.07 265);
+  --input: oklch(0.32 0.06 268);
+  --ring: oklch(0.72 0.14 72);
 }
 
 .dark {
-  --background: oklch(0.18 0.02 40);
-  --foreground: oklch(0.94 0.03 80);
-  --card: oklch(0.22 0.03 42);
-  --card-foreground: oklch(0.94 0.03 80);
-  --primary: oklch(0.72 0.14 70);
-  --primary-foreground: oklch(0.18 0.02 40);
-  --border: oklch(0.35 0.04 50);
-  --input: oklch(0.3 0.04 45);
-  --ring: oklch(0.72 0.14 70);
+  --background: oklch(0.16 0.05 265);
+  --foreground: oklch(0.92 0.04 85);
+  --card: oklch(0.97 0.022 82);
+  --card-foreground: oklch(0.28 0.05 40);
+  --primary: oklch(0.55 0.13 60);
+  --primary-foreground: oklch(0.97 0.025 80);
+  --border: oklch(0.42 0.07 265);
+  --input: oklch(0.32 0.06 268);
+  --ring: oklch(0.72 0.14 72);
   --gold: oklch(0.78 0.15 72);
-  --muted: oklch(0.26 0.03 42);
-  --muted-foreground: oklch(0.72 0.04 70);
-  --accent: oklch(0.72 0.14 70);
-  --accent-foreground: oklch(0.18 0.02 40);
-  --secondary: oklch(0.28 0.04 45);
-  --secondary-foreground: oklch(0.94 0.03 80);
-  --popover: oklch(0.22 0.03 42);
-  --popover-foreground: oklch(0.94 0.03 80);
-  --destructive: oklch(0.55 0.2 27);
+  --muted: oklch(0.25 0.05 268);
+  --muted-foreground: oklch(0.78 0.05 260);
+  --accent: oklch(0.72 0.14 72);
+  --accent-foreground: oklch(0.2 0.04 40);
+  --secondary: oklch(0.28 0.06 270);
+  --secondary-foreground: oklch(0.92 0.04 85);
+  --popover: oklch(0.22 0.05 265);
+  --popover-foreground: oklch(0.92 0.04 85);
+  --destructive: oklch(0.6 0.2 27);
   --destructive-foreground: oklch(0.98 0.01 80);
 }
 
@@ -95,9 +97,12 @@
     color: var(--color-foreground);
     font-family: var(--font-body);
     background-image:
-      radial-gradient(at 20% 10%, color-mix(in oklab, var(--gold) 18%, transparent) 0px, transparent 50%),
-      radial-gradient(at 80% 90%, color-mix(in oklab, var(--primary) 14%, transparent) 0px, transparent 50%);
+      radial-gradient(ellipse at 75% 15%, color-mix(in oklab, oklch(0.95 0.05 85) 14%, transparent) 0%, transparent 55%),
+      radial-gradient(ellipse at 10% 5%, color-mix(in oklab, oklch(0.85 0.1 270) 10%, transparent) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 100%, oklch(0.1 0.04 265) 0%, transparent 60%),
+      linear-gradient(180deg, oklch(0.18 0.06 268) 0%, oklch(0.14 0.05 262) 60%, oklch(0.1 0.04 258) 100%);
     background-attachment: fixed;
+    min-height: 100vh;
   }
 
   h1, h2, h3, h4 {
@@ -148,13 +153,80 @@
     position: relative;
     overflow: hidden;
     border-radius: 1.25rem;
-    background: color-mix(in oklab, var(--parchment) 92%, transparent);
+    background: color-mix(in oklab, var(--parchment) 96%, transparent);
     border: 1px solid color-mix(in oklab, var(--gold) 50%, transparent);
     box-shadow:
       inset 0 0 0 1px color-mix(in oklab, var(--gold) 18%, transparent),
       inset 0 0 60px -10px color-mix(in oklab, var(--gold) 22%, transparent),
-      0 10px 40px -20px color-mix(in oklab, var(--ink) 40%, transparent);
+      0 0 0 1px color-mix(in oklab, var(--gold) 22%, transparent),
+      0 30px 90px -30px color-mix(in oklab, oklch(0.95 0.06 80) 40%, transparent),
+      0 18px 60px -20px color-mix(in oklab, oklch(0.12 0.04 265) 90%, transparent);
   }
+
+  .canvas-card::before {
+    content: "";
+    position: absolute;
+    inset: -40px;
+    z-index: -1;
+    border-radius: 2rem;
+    background: radial-gradient(ellipse at 50% 0%, color-mix(in oklab, oklch(0.95 0.06 80) 35%, transparent) 0%, transparent 65%);
+    filter: blur(30px);
+    pointer-events: none;
+  }
+
+  .sky-layer {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .sky-stars {
+    background-image:
+      radial-gradient(1px 1px at 12% 18%, rgba(255, 248, 220, 0.9), transparent 50%),
+      radial-gradient(1px 1px at 78% 32%, rgba(255, 248, 220, 0.75), transparent 50%),
+      radial-gradient(1.5px 1.5px at 42% 12%, rgba(255, 248, 220, 0.85), transparent 50%),
+      radial-gradient(1px 1px at 88% 72%, rgba(255, 248, 220, 0.7), transparent 50%),
+      radial-gradient(1px 1px at 23% 64%, rgba(255, 248, 220, 0.6), transparent 50%),
+      radial-gradient(1.5px 1.5px at 65% 88%, rgba(255, 248, 220, 0.8), transparent 50%),
+      radial-gradient(1px 1px at 5% 45%, rgba(220, 230, 255, 0.6), transparent 50%),
+      radial-gradient(1px 1px at 95% 8%, rgba(255, 248, 220, 0.7), transparent 50%),
+      radial-gradient(0.5px 0.5px at 33% 78%, rgba(220, 230, 255, 0.5), transparent 50%),
+      radial-gradient(0.5px 0.5px at 56% 48%, rgba(220, 230, 255, 0.5), transparent 50%);
+    background-size: 800px 800px, 800px 800px, 800px 800px, 800px 800px, 800px 800px, 800px 800px, 800px 800px, 800px 800px, 400px 400px, 400px 400px;
+    animation: twinkle 14s ease-in-out infinite;
+  }
+
+  .sky-moonglow {
+    background: radial-gradient(circle at 50% 28%, color-mix(in oklab, oklch(0.95 0.06 80) 22%, transparent) 0%, transparent 38%);
+    animation: auraBreathe 18s ease-in-out infinite;
+  }
+
+  .sky-vignette {
+    background: radial-gradient(ellipse at center, transparent 50%, oklch(0.08 0.03 260 / 0.55) 100%);
+  }
+
+  .stardust {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+
+  .stardust > span {
+    position: absolute;
+    bottom: -10px;
+    left: var(--x, 50%);
+    width: var(--size, 2px);
+    height: var(--size, 2px);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 240, 200, 0.9) 0%, rgba(255, 240, 200, 0) 70%);
+    opacity: 0;
+    animation: driftUp var(--duration, 28s) linear infinite;
+    animation-delay: var(--delay, 0s);
+  }
+
 
   .canvas-moon {
     position: absolute;
@@ -250,6 +322,23 @@
     50%      { transform: translateY(-3px) rotate(1deg); }
   }
 
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.85; }
+    50%      { opacity: 0.55; }
+  }
+
+  @keyframes auraBreathe {
+    0%, 100% { opacity: 0.85; transform: scale(1); }
+    50%      { opacity: 1;    transform: scale(1.04); }
+  }
+
+  @keyframes driftUp {
+    0%   { transform: translate3d(0, 0, 0); opacity: 0; }
+    10%  { opacity: 0.9; }
+    90%  { opacity: 0.7; }
+    100% { transform: translate3d(var(--sway, 20px), -110vh, 0); opacity: 0; }
+  }
+
   .ornament::before,
   .ornament::after {
     content: "❦";
@@ -259,9 +348,11 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .breathe, .breathe-delayed, .caret, .canvas-moon, .feather-float, .feather-write {
+    .breathe, .breathe-delayed, .caret, .canvas-moon, .feather-float, .feather-write,
+    .sky-stars, .sky-moonglow, .stardust > span {
       animation: none !important;
     }
     .canvas-moon { opacity: 0.12; }
+    .stardust > span { opacity: 0.4; }
   }
 }

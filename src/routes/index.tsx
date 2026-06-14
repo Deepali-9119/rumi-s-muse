@@ -229,24 +229,53 @@ function Index() {
   const hasConversation = entries.length > 0;
   const lastIndex = entries.length - 1;
 
+  const dust = Array.from({ length: 14 }, (_, i) => {
+    const x = (i * 73) % 100;
+    const size = 1 + ((i * 7) % 4) * 0.6;
+    const duration = 22 + ((i * 11) % 20);
+    const delay = (i * 2.3) % 18;
+    const sway = ((i % 2 === 0 ? 1 : -1) * (15 + (i * 5) % 30));
+    return { x, size, duration, delay, sway, key: i };
+  });
+
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="pt-10 pb-6 px-6 text-center">
+    <div className="min-h-screen flex flex-col relative">
+      <div className="sky-layer sky-stars" aria-hidden="true" />
+      <div className="sky-layer sky-moonglow" aria-hidden="true" />
+      <div className="sky-layer sky-vignette" aria-hidden="true" />
+      <div className="stardust" aria-hidden="true">
+        {dust.map((d) => (
+          <span
+            key={d.key}
+            style={{
+              ['--x' as string]: `${d.x}%`,
+              ['--size' as string]: `${d.size}px`,
+              ['--duration' as string]: `${d.duration}s`,
+              ['--delay' as string]: `${d.delay}s`,
+              ['--sway' as string]: `${d.sway}px`,
+            }}
+          />
+        ))}
+      </div>
+
+      <header className="pt-10 pb-6 px-6 text-center relative z-10">
         <p className="text-xs tracking-[0.4em] uppercase text-gold mb-3">A Whispered Reply</p>
-        <h1 className="font-display text-5xl md:text-6xl font-medium text-ink">
+        <h1 className="font-display text-5xl md:text-6xl font-medium" style={{ color: "var(--sky-foreground)" }}>
+          <span className="text-gold/70 mr-3 text-2xl align-middle">✦</span>
           Rumi <span className="italic text-gold">is your</span> Roomie
+          <span className="text-gold/70 ml-3 text-2xl align-middle">✦</span>
         </h1>
-        <p className="mt-4 text-muted-foreground italic font-display text-lg max-w-xl mx-auto">
+        <p className="mt-4 italic font-display text-lg max-w-xl mx-auto" style={{ color: "var(--sky-muted)" }}>
           Tell him a thought, a wound, a wonder — and he will answer in verse.
         </p>
         <div className="ornament inline-block mt-5 text-sm text-gold/70" />
       </header>
 
-      <main className="flex-1 px-6 py-8">
+      <main className="flex-1 px-6 py-8 relative z-10">
         <div className="max-w-2xl mx-auto space-y-10">
           {!hasConversation && (
-            <div className="text-center mt-10 opacity-80">
-              <p className="font-display italic text-xl text-muted-foreground">
+            <div className="text-center mt-10 opacity-90">
+              <p className="font-display italic text-xl" style={{ color: "var(--sky-muted)" }}>
                 "Out beyond ideas of wrongdoing and rightdoing,
                 <br />
                 there is a field. I'll meet you there."
@@ -255,6 +284,7 @@ function Index() {
             </div>
           )}
 
+
           {entries.map((e, i) => {
             const isLatest = i === lastIndex;
 
@@ -262,7 +292,8 @@ function Index() {
               return (
                 <details
                   key={e.id}
-                  className="history-card group rounded-xl border border-gold/30 bg-card/60 backdrop-blur-sm px-5 py-3 hover:border-gold/60"
+                  className="history-card group rounded-xl border border-gold/40 px-5 py-3 hover:border-gold/70 backdrop-blur-md"
+                  style={{ background: "color-mix(in oklab, var(--parchment) 88%, transparent)" }}
                 >
                   <summary className="flex items-center justify-between cursor-pointer list-none select-none">
                     <span className="font-display italic text-lg text-ink truncate">
@@ -394,9 +425,12 @@ function Index() {
         </div>
       </main>
 
-      <div className="sticky bottom-0 bg-gradient-to-t from-background via-background to-transparent pt-6 pb-6 px-6">
+      <div className="sticky bottom-0 pt-6 pb-6 px-6 z-10 bg-gradient-to-t from-[oklch(0.1_0.04_262)] via-[oklch(0.14_0.05_262)]/90 to-transparent">
         <form onSubmit={submit} className="max-w-2xl mx-auto">
-          <div className="flex items-end gap-2 rounded-2xl border border-gold/50 bg-card/80 backdrop-blur px-4 py-3 shadow-lg focus-within:border-gold transition-colors">
+          <div
+            className="flex items-end gap-2 rounded-2xl border border-gold/50 backdrop-blur-md px-4 py-3 shadow-2xl shadow-black/40 focus-within:border-gold transition-colors"
+            style={{ background: "color-mix(in oklab, var(--parchment) 92%, transparent)" }}
+          >
             <textarea
               value={topic}
               onChange={(ev) => setTopic(ev.target.value)}
@@ -410,7 +444,7 @@ function Index() {
               maxLength={500}
               disabled={busy}
               placeholder={busy ? "Rumi is composing your verse…" : "Whisper a topic, a feeling, a question…"}
-              className="flex-1 resize-none bg-transparent outline-none font-body text-base placeholder:text-muted-foreground/60 max-h-32 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="flex-1 resize-none bg-transparent outline-none font-body text-base text-ink placeholder:text-ink/40 max-h-32 disabled:opacity-60 disabled:cursor-not-allowed"
               aria-label="Your topic for Rumi"
             />
             <button
@@ -424,7 +458,7 @@ function Index() {
               </svg>
             </button>
           </div>
-          <p className="text-center text-xs text-muted-foreground/70 mt-2 italic font-display">
+          <p className="text-center text-xs mt-2 italic font-display" style={{ color: "var(--sky-muted)" }}>
             Press Enter to send · Shift+Enter for a new line
           </p>
         </form>
