@@ -229,18 +229,19 @@ function Index() {
   const hasConversation = entries.length > 0;
   const lastIndex = entries.length - 1;
 
-  const dust = Array.from({ length: 14 }, (_, i) => {
-    const x = (i * 73) % 100;
-    const size = 1 + ((i * 7) % 4) * 0.6;
-    const duration = 22 + ((i * 11) % 20);
-    const delay = (i * 2.3) % 18;
-    const sway = ((i % 2 === 0 ? 1 : -1) * (15 + (i * 5) % 30));
+  const dust = Array.from({ length: 9 }, (_, i) => {
+    const x = (i * 79 + 7) % 100;
+    const size = 1 + ((i * 5) % 3) * 0.5;
+    const duration = 32 + ((i * 13) % 18);
+    const delay = (i * 3.7) % 22;
+    const sway = ((i % 2 === 0 ? 1 : -1) * (12 + (i * 4) % 24));
     return { x, size, duration, delay, sway, key: i };
   });
 
   return (
     <div className="min-h-screen flex flex-col relative">
       <div className="sky-layer sky-stars" aria-hidden="true" />
+      <div className="sky-layer sky-constellations" aria-hidden="true" />
       <div className="sky-layer sky-moonglow" aria-hidden="true" />
       <div className="sky-layer sky-vignette" aria-hidden="true" />
       <div className="stardust" aria-hidden="true">
@@ -352,19 +353,18 @@ function Index() {
                   )}
                   <div className="canvas-veil" aria-hidden="true" />
 
+                  <img
+                    src={FEATHER_URL}
+                    alt=""
+                    aria-hidden="true"
+                    className={`quill-on-page ${e.loading ? "feather-write" : "feather-float"}`}
+                  />
+
                   <div className="relative px-6 md:px-10 py-10">
                     <div className="absolute top-3 left-1/2 -translate-x-1/2 text-gold text-2xl select-none">
                       ❦
                     </div>
 
-                    <div className="flex justify-start mb-2">
-                      <img
-                        src={FEATHER_URL}
-                        alt=""
-                        aria-hidden="true"
-                        className={`feather-img ${e.loading ? "feather-write" : "feather-float"}`}
-                      />
-                    </div>
 
                     <div className="border-t border-b border-gold/40 py-8 text-center min-h-[220px] flex items-center justify-center">
                       {e.loading && (
