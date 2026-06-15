@@ -1,53 +1,41 @@
 ## Goal
 
-Turn Rumi's Muse into a calm, immersive midnight poetry sanctuary: deep indigo/navy sky with stars, drifting stardust, and a moonlit aura framing a warm parchment poem card that stays the clear focal point.
+Refine the existing midnight-blue theme into a quieter, more intimate "Rumi beneath a star-filled sky" atmosphere — sparse elegant stars, breathing moonlit aura, and a poem canvas that reads as an illuminated manuscript with the quill woven into the page.
 
-## Changes
+## Changes — all in `src/styles.css` and `src/routes/index.tsx`
 
-### 1. `src/styles.css` — new midnight theme + celestial layers
+### 1. Sky atmosphere — quieter, more elegant (`styles.css`)
 
-- Replace the peach body background with a layered midnight palette:
-  - Base gradient: deep navy `oklch(0.16 0.05 265)` → indigo `oklch(0.22 0.08 275)` → near-black at edges.
-  - Two soft radial moonglow highlights (top-right large, top-left subtle) using a warm ivory tint at very low alpha for atmospheric depth.
-  - `background-attachment: fixed` preserved so scrolling feels like a still sky.
-- Update foreground/header tokens so headline + tagline read on dark sky:
-  - Add `--sky-foreground` (warm ivory) and `--sky-muted` (dim periwinkle).
-  - Keep `--ink`, `--parchment`, `--gold` unchanged — the poem card still uses warm parchment + dark ink for maximum readability.
-- New decorative layers (purely CSS, fixed to viewport, `pointer-events: none`, `aria-hidden`):
-  - `.sky-stars` — two stacked `radial-gradient` star fields (small + tiny dots) tiled via `background-size`, very slow `twinkle` opacity animation (12s).
-  - `.sky-constellations` — a faint SVG-as-data-URI background of sparse dotted lines, opacity ~0.08.
-  - `.sky-moonglow` — large soft radial halo positioned behind the poem area (~30% from top), warm ivory at 10–14% opacity, slow `auraBreathe` 18s.
-  - `.sky-vignette` — radial dark vignette at edges for depth.
-- New `.stardust` particle layer rendered by 12–16 absolutely-positioned `<span>` dots (created in JSX) using `driftUp` keyframes (translateY -120vh + slight horizontal sway + opacity fade) over 22–40s with staggered delays. Pure CSS animation, no JS loop.
-- New keyframes: `twinkle`, `auraBreathe`, `driftUp`.
-- Strengthen `.canvas-card`:
-  - Warmer parchment background (slightly brighter than page).
-  - Larger soft outer shadow with warm gold tint (`0 30px 80px -30px gold/35%`) so card feels lit from above.
-  - Subtle outer ring `0 0 0 1px gold/25%` for manuscript edge.
-  - Add a faint outer "moonlight halo" via `::before` (radial gold/ivory gradient, blurred, behind card) so the card visibly catches moonlight.
-- Update `.history-card`: switch from peach card surface to a translucent ivory-on-midnight (`bg-parchment/85`) so it still reads as parchment over the night sky.
-- Update the sticky composer band: replace peach gradient with a midnight-to-transparent gradient and tweak input surface to translucent parchment for contrast.
-- All decorative motion respects `prefers-reduced-motion` (twinkle, auraBreathe, driftUp disabled; static positions retained).
+- **Stars**: thin the `.sky-stars` radial-gradient field — fewer dots, smaller (0.5–1.2px), lower alpha (max 0.55 instead of 0.9), larger tile sizes so they feel sparse and distant. Slow the `twinkle` keyframe to ~22s and narrow the opacity range (0.45 ↔ 0.6) so the shimmer is barely perceptible.
+- **New `.sky-constellations` layer**: very faint SVG data-URI of 3–4 sparse dotted "constellation" lines at ~0.06 opacity, fixed position, no animation. Adds depth without busyness.
+- **Moonglow halo**: tighten `.sky-moonglow` so the warm radial is positioned directly behind the poem canvas (~45% from top, 35% radius) instead of high on the page. Strengthen `auraBreathe` slightly — opacity 0.7 ↔ 1.0, scale 1 ↔ 1.05, 16s — so the page literally breathes around the poem.
+- **Stardust particles**: reduce JSX count from 14 → 9, smaller sizes (1–2px), longer durations (32–50s), lower opacity peak (0.55) — drifting embers rather than snow.
 
-### 2. `src/routes/index.tsx` — mount celestial layers + restyle chrome
+### 2. Illuminated manuscript canvas (`styles.css`)
 
-- At the top of the returned tree, render fixed background layers in order: `.sky-stars`, `.sky-constellations`, `.sky-moonglow`, `.sky-vignette`, and a `.stardust` container with ~14 `<span>` particles (varied `--x`, `--delay`, `--duration`, `--size` via inline style custom properties consumed by the keyframes).
-- Wrap page content in `relative z-10` so it sits above the sky.
-- Header: change headline color to warm ivory, keep gold accents; tagline uses dim periwinkle. Add small `✦` flourishes flanking the title for a constellation feel.
-- Empty-state quote: ivory/gold on midnight.
-- User-topic bubble: keep primary color but soften with `shadow-lg shadow-indigo-950/40` so it sits naturally on the dark sky.
-- Poem canvas (`.canvas-card`): unchanged structurally — still warm parchment, dark ink, gold borders, moon image, feather, typewriter. The new outer halo + page darkness will make it visibly glow.
-- History cards: parchment-tinted translucent surface with gold border so they read as small folded letters on the night sky.
-- Sticky composer: midnight-tinted gradient backdrop; input surface stays parchment-light for typing comfort; helper text in dim ivory.
+Rework `.canvas-card`:
+- **Warmer parchment**: shift card surface to a layered background — base `color-mix(var(--parchment) 98%, oklch(0.92 0.07 70))` plus two soft radial highlights (top-left cream, bottom-right warm amber) for candlelit warmth.
+- **Paper grain**: add a subtle SVG fractal-noise data-URI as a `::after` overlay at 6–8% opacity, `mix-blend-mode: multiply`, masked so edges fade — gives tactile paper texture without noise artifacts.
+- **Softer edges**: increase border-radius to `1.5rem`, swap the hard gold border for a faded inner gold ring (`inset 0 0 0 1px gold/22%`) and a softer outer ring (`0 0 0 1px gold/14%`). Drop the visible `border` property.
+- **Refined shadow**: layered shadow stack — close warm ambient (`0 2px 8px ink/15%`), medium drop (`0 20px 50px -20px ink/45%`), and a wide candlelit halo (`0 40px 120px -40px oklch(0.85 0.1 65)/35%`).
+- **Moonlight halo**: keep `::before` halo but warm it slightly toward amber and enlarge so it bleeds beyond the card edges, harmonizing with `.sky-moonglow`.
+- **Edge vignette**: add a faint inner radial vignette inside the card (via an extra inset shadow or `::after` mask) so the parchment center is brightest — classic manuscript lighting.
 
-### 3. No changes to
+### 3. Quill integrated into the manuscript (`styles.css` + `index.tsx`)
 
-- Webhook URL, fetch logic, typewriter timing, entry state, asset files, routing, or backend.
-- Existing fonts (Cormorant Garamond / EB Garamond) — already perfectly literary.
-- The poem text styling itself (ink on parchment) — readability is preserved exactly.
+Currently the feather sits in a left-aligned block above the divider. Make it feel like an object resting on the page:
+- **Position**: in `index.tsx`, move the feather `<img>` into the canvas as an absolutely-positioned element — top-right of the manuscript, rotated ~−18°, partially overlapping the top border so it looks laid across the page corner.
+- **Blending**: in `.feather-img` raise blend strength — `mix-blend-mode: multiply`, opacity 0.55, add a soft drop-shadow (`drop-shadow(0 6px 10px oklch(0.3 0.05 40 / 0.35))`) so it casts a believable shadow on the parchment.
+- **Size**: 130–150px, scales down on mobile.
+- **Motion**: keep the existing `feather-float` (idle) and `feather-write` (loading) animations but reduce amplitude so it sways gently instead of bobbing.
+- Remove the empty left-aligned feather slot above the divider.
 
-## Notes on craft
+### 4. Readability preserved
 
-- Particles and twinkle are intentionally slow (>10s loops) and low-opacity so the eye drifts to the poem.
-- Moonglow halo is centered behind the canvas card so the parchment looks lit from above, reinforcing the "manuscript by moonlight" metaphor.
-- No JS animation loops, no extra libraries — pure CSS keyframes for performance.
+- Poem text styling untouched: same `font-display`, ink color, `text-xl md:text-2xl`, `leading-[1.95]`.
+- The parchment warming stays within a narrow luminance band so contrast with `--ink` remains strong.
+- All decorative additions are `pointer-events: none`, `aria-hidden`, and respect `prefers-reduced-motion` (twinkle, auraBreathe, driftUp, feather animations disabled).
+
+## Out of scope
+
+Webhook, fetch logic, typewriter timing, entry state, routing, fonts, and asset files are unchanged.
