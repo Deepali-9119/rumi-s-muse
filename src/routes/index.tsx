@@ -353,19 +353,18 @@ function Index() {
                   )}
                   <div className="canvas-veil" aria-hidden="true" />
 
+                  <img
+                    src={FEATHER_URL}
+                    alt=""
+                    aria-hidden="true"
+                    className={`quill-on-page ${e.loading ? "feather-write" : "feather-float"}`}
+                  />
+
                   <div className="relative px-6 md:px-10 py-10">
                     <div className="absolute top-3 left-1/2 -translate-x-1/2 text-gold text-2xl select-none">
                       ❦
                     </div>
 
-                    <div className="flex justify-start mb-2">
-                      <img
-                        src={FEATHER_URL}
-                        alt=""
-                        aria-hidden="true"
-                        className={`feather-img ${e.loading ? "feather-write" : "feather-float"}`}
-                      />
-                    </div>
 
                     <div className="border-t border-b border-gold/40 py-8 text-center min-h-[220px] flex items-center justify-center">
                       {e.loading && (
