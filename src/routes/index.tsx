@@ -25,7 +25,7 @@ export const Route = createFileRoute("/")({
 });
 
 const WEBHOOK_URL =
-  "https://cherry-glad-peaceful-interactions.trycloudflare.com/webhook/307bd27c-c693-4c85-98e2-241a1909a633";
+  "https://grams-displayed-respect-feeding.trycloudflare.com/webhook/307bd27c-c693-4c85-98e2-241a1909a633";
 
 const MOON_URL = moonAsset.url;
 const FEATHER_URL = featherAsset.url;
